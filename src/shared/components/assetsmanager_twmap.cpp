@@ -2068,20 +2068,23 @@ bool CAssetsManager::Save_Map(const char* pFileName, int StorageType, int Packag
 	int GameY = 0;
 	int GameWidth = 0;
 	int GameHeight = 0;
-	
-	const auto ExportZoneToTiles = [&GameX, &GameY, &GameWidth, &GameHeight](const CAsset_MapZoneTiles *pZone, ddnet::CTile *pTiles)
-	{
+
+	using IndexValidator = uint8 (*)(uint8, uint8);
+	const auto ExportZoneToTiles = [&GameX, &GameY, &GameWidth, &GameHeight](const CAsset_MapZoneTiles *pZone, ddnet::CTile *pTiles, IndexValidator Validator = nullptr) {
 		for(int j=0; j<pZone->GetTileHeight(); j++)
 		{
 			for(int i=0; i<pZone->GetTileWidth(); i++)
 			{
 				CSubPath TilePath = CAsset_MapZoneTiles::SubPath_Tile(i, j);
-				int Index = pZone->GetTileIndex(TilePath);
+				int I = i + pZone->GetPositionX() - GameX;
+				int J = j + pZone->GetPositionY() - GameY;
+
+				uint8 Index = pZone->GetTileIndex(TilePath);
+				if(Validator)
+					Index = (*Validator)(Index, pTiles[J * GameWidth + I].m_Index);
+
 				if(Index > 0)
 				{
-					int I =  i + pZone->GetPositionX() - GameX;
-					int J =  j + pZone->GetPositionY() - GameY;
-
 					if((i == 0) && (i != I))
 					{
 						// This is the left edge which does not match that of the gamelayer
