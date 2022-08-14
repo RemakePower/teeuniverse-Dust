@@ -2357,20 +2357,20 @@ bool CAssetsManager::Save_Map(const char* pFileName, int StorageType, int Packag
 							{
 								CSubPath TilePath = CAsset_MapZoneTiles::SubPath_Tile(i, j);
 								int I =  i + pZone->GetPositionX() - GameX;
-								int J =  j + pZone->GetPositionY() - GameY;
-								
-								switch(pZone->GetTileIndex(TilePath))
+								int J = j + pZone->GetPositionY() - GameY;
+
+								const int Index = pZone->GetTileIndex(TilePath);
+								unsigned char &TargetIndex = pGameTiles[J * GameWidth + I].m_Index;
+								switch(Index)
 								{
-									case 1:
-										pGameTiles[J*GameWidth+I].m_Index = ddnet::TILE_SOLID;
-										break;
-									case 2:
-										if(pGameTiles[J*GameWidth+I].m_Index != ddnet::TILE_SOLID && pGameTiles[J*GameWidth+I].m_Index != ddnet::TILE_NOHOOK)
-											pGameTiles[J*GameWidth+I].m_Index = ddnet::TILE_DEATH;
-										break;
-									case 3:
-										pGameTiles[J*GameWidth+I].m_Index = ddnet::TILE_NOHOOK;
-										break;
+								case ddnet::TILE_SOLID:
+								case ddnet::TILE_NOHOOK:
+									TargetIndex = Index;
+									break;
+								case ddnet::TILE_DEATH:
+									if(TargetIndex != ddnet::TILE_SOLID && TargetIndex != ddnet::TILE_NOHOOK)
+										TargetIndex = Index;
+									break;
 								}
 							}
 						}
