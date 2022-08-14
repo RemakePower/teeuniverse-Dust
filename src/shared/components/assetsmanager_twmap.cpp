@@ -2354,29 +2354,24 @@ bool CAssetsManager::Save_Map(const char* pFileName, int StorageType, int Packag
 				{
 					if(pZone->GetZoneTypePath() == m_Path_ZoneType_TeeWorlds)
 					{
-						for(int j=0; j<pZone->GetTileHeight(); j++)
-						{
-							for(int i=0; i<pZone->GetTileWidth(); i++)
+						IndexValidator Validator = [](uint8 Index, uint8 TargetIndex) -> uint8 {
+							switch(Index)
 							{
-								CSubPath TilePath = CAsset_MapZoneTiles::SubPath_Tile(i, j);
-								int I =  i + pZone->GetPositionX() - GameX;
-								int J = j + pZone->GetPositionY() - GameY;
-
-								const int Index = pZone->GetTileIndex(TilePath);
-								unsigned char &TargetIndex = pGameTiles[J * GameWidth + I].m_Index;
-								switch(Index)
-								{
-								case ddnet::TILE_SOLID:
-								case ddnet::TILE_NOHOOK:
-									TargetIndex = Index;
-									break;
-								case ddnet::TILE_DEATH:
-									if(TargetIndex != ddnet::TILE_SOLID && TargetIndex != ddnet::TILE_NOHOOK)
-										TargetIndex = Index;
-									break;
-								}
+							case ddnet::TILE_SOLID:
+							case ddnet::TILE_NOHOOK:
+								return Index;
+								break;
+							case ddnet::TILE_DEATH:
+								if(TargetIndex != ddnet::TILE_SOLID && TargetIndex != ddnet::TILE_NOHOOK)
+									return Index;
+								break;
+							default:
+								break;
 							}
-						}
+
+							return TargetIndex;
+						};
+						ExportZoneToTiles(pZone, pGameTiles, Validator);
 					}
 					else if(Format == MAPFORMAT_DUMMYCAPTURE && m_PackageId_UnivSport >= 0 && pZone->GetZoneTypePath() == m_Path_ZoneType_Sport)
 					{
