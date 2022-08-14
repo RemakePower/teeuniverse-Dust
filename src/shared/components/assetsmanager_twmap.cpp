@@ -3006,173 +3006,7 @@ bool CAssetsManager::Save_Map(const char* pFileName, int StorageType, int Packag
 	//Step5: Save other entities in PTUM format
 	if(EntityGroupNeeded)
 	{
-		int StartLayer = LayerId;
-		
-		std::vector<CAssetPath> EntityTypeList;
-		std::vector< std::vector<ddnet::CQuad> > EntityQuads;
-		
-		for(unsigned int i=0; i<PTUMTeeWorldsEntities.size(); i++)
-		{
-			CAsset_MapEntities::CEntity& Entity = PTUMTeeWorldsEntities[i];
-			CAssetPath EntityTypePath = Entity.GetTypePath();
-			
-			//Search in previous layers
-			unsigned int eId;
-			for(eId=0; eId<EntityTypeList.size(); eId++)
-			{
-				if(EntityTypeList[eId] == EntityTypePath)
-					break;
-			}
-			if(eId == EntityTypeList.size())
-			{
-				EntityTypeList.push_back(EntityTypePath);
-				EntityQuads.emplace_back();
-			}
-			
-			EntityQuads[eId].emplace_back();
-			ddnet::CQuad& Quad = EntityQuads[eId].back();
-			
-			Quad.m_aPoints[1].x = f2fx(Entity.GetPositionX()-16.0f-LayerShift.x);
-			Quad.m_aPoints[1].y = f2fx(Entity.GetPositionY()-16.0f-LayerShift.y);
-			Quad.m_aPoints[0].x = f2fx(Entity.GetPositionX()+16.0f-LayerShift.x);
-			Quad.m_aPoints[0].y = f2fx(Entity.GetPositionY()-16.0f-LayerShift.y);
-			Quad.m_aPoints[3].x = f2fx(Entity.GetPositionX()-16.0f-LayerShift.x);
-			Quad.m_aPoints[3].y = f2fx(Entity.GetPositionY()+16.0f-LayerShift.y);
-			Quad.m_aPoints[2].x = f2fx(Entity.GetPositionX()+16.0f-LayerShift.x);
-			Quad.m_aPoints[2].y = f2fx(Entity.GetPositionY()+16.0f-LayerShift.y);
-			Quad.m_aPoints[4].x = f2fx(Entity.GetPositionX()-LayerShift.x);
-			Quad.m_aPoints[4].y = f2fx(Entity.GetPositionY()-LayerShift.y);
-			
-			for(int j=0; j<4; j++)
-			{
-				Quad.m_aTexcoords[j+1-2*(j%2)].x = 0.0f;
-				Quad.m_aTexcoords[j+1-2*(j%2)].y = 0.0f;
-				Quad.m_aColors[j+1-2*(j%2)].r = 255.0f;
-				Quad.m_aColors[j+1-2*(j%2)].g = 255.0f;
-				Quad.m_aColors[j+1-2*(j%2)].b = 255.0f;
-				Quad.m_aColors[j+1-2*(j%2)].a = 255.0f;
-			}
-			
-			Quad.m_PosEnv = -1;
-			Quad.m_PosEnvOffset = 0;
-			Quad.m_ColorEnv = -1;
-			Quad.m_ColorEnvOffset = 0;
-		}
-		
-		CAsset_Map::CIteratorEntityLayer EntityLayerIter;
-		for(EntityLayerIter = pMap->BeginEntityLayer(); EntityLayerIter != pMap->EndEntityLayer(); ++EntityLayerIter)
-		{
-			const CAsset_MapEntities* pEntities = GetAsset<CAsset_MapEntities>(pMap->GetEntityLayer(*EntityLayerIter));
-			if(!pEntities)
-				continue;
-			
-			for(int i=0; i<pEntities->GetEntityArraySize(); i++)
-			{
-				CSubPath SubPath = CAsset_MapEntities::SubPath_Entity(i);
-				CAssetPath EntityTypePath = pEntities->GetEntityTypePath(SubPath);
-				
-				if(EntityTypePath == m_Path_EntityType_TWSpawn)
-					continue;
-				else if(EntityTypePath == m_Path_EntityType_TWSpawnRed)
-					continue;
-				else if(EntityTypePath == m_Path_EntityType_TWSpawnBlue)
-					continue;
-				else if(EntityTypePath == m_Path_EntityType_TWShotgun)
-					continue;
-				else if(EntityTypePath == m_Path_EntityType_TWGrenade)
-					continue;
-				else if(EntityTypePath == m_Path_EntityType_TWLaserRifle)
-					continue;
-				else if(EntityTypePath == m_Path_EntityType_TWNinja)
-					continue;
-				else if(EntityTypePath == m_Path_EntityType_TWHeart)
-					continue;
-				else if(EntityTypePath == m_Path_EntityType_TWArmor)
-					continue;
-				else if(EntityTypePath == m_Path_EntityType_TWFlagBlue)
-					continue;
-				else if(EntityTypePath == m_Path_EntityType_TWFlagRed)
-					continue;
-				
-				//Search in previous layers
-				unsigned int eId;
-				for(eId=0; eId<EntityTypeList.size(); eId++)
-				{
-					if(EntityTypeList[eId] == EntityTypePath)
-						break;
-				}
-				if(eId == EntityTypeList.size())
-				{
-					EntityTypeList.push_back(EntityTypePath);
-					EntityQuads.emplace_back();
-				}
-				
-				EntityQuads[eId].emplace_back();
-				ddnet::CQuad& Quad = EntityQuads[eId].back();
-				
-				Quad.m_aPoints[1].x = f2fx(pEntities->GetEntityPositionX(SubPath)-16.0f-LayerShift.x);
-				Quad.m_aPoints[1].y = f2fx(pEntities->GetEntityPositionY(SubPath)-16.0f-LayerShift.y);
-				Quad.m_aPoints[0].x = f2fx(pEntities->GetEntityPositionX(SubPath)+16.0f-LayerShift.x);
-				Quad.m_aPoints[0].y = f2fx(pEntities->GetEntityPositionY(SubPath)-16.0f-LayerShift.y);
-				Quad.m_aPoints[3].x = f2fx(pEntities->GetEntityPositionX(SubPath)-16.0f-LayerShift.x);
-				Quad.m_aPoints[3].y = f2fx(pEntities->GetEntityPositionY(SubPath)+16.0f-LayerShift.y);
-				Quad.m_aPoints[2].x = f2fx(pEntities->GetEntityPositionX(SubPath)+16.0f-LayerShift.x);
-				Quad.m_aPoints[2].y = f2fx(pEntities->GetEntityPositionY(SubPath)+16.0f-LayerShift.y);
-				Quad.m_aPoints[4].x = f2fx(pEntities->GetEntityPositionX(SubPath)-LayerShift.x);
-				Quad.m_aPoints[4].y = f2fx(pEntities->GetEntityPositionY(SubPath)-LayerShift.y);
-				
-				for(int j=0; j<4; j++)
-				{
-					Quad.m_aTexcoords[j+1-2*(j%2)].x = 0.0f;
-					Quad.m_aTexcoords[j+1-2*(j%2)].y = 0.0f;
-					Quad.m_aColors[j+1-2*(j%2)].r = 255.0f;
-					Quad.m_aColors[j+1-2*(j%2)].g = 255.0f;
-					Quad.m_aColors[j+1-2*(j%2)].b = 255.0f;
-					Quad.m_aColors[j+1-2*(j%2)].a = 255.0f;
-				}
-				
-				Quad.m_PosEnv = -1;
-				Quad.m_PosEnvOffset = 0;
-				Quad.m_ColorEnv = -1;
-				Quad.m_ColorEnvOffset = 0;
-			}
-		}
-		
-		for(unsigned int eId=0; eId<EntityTypeList.size(); eId++)
-		{
-			ddnet::CMapItemLayerQuads LItem;
-			LItem.m_Version = 2;
-			LItem.m_Layer.m_Version = 0; // was previously uninitialized, do not rely on it being 0
-			LItem.m_Layer.m_Type = ddnet::LAYERTYPE_QUADS;
-			LItem.m_Layer.m_Flags = ddnet::LAYERFLAG_DETAIL;
-			LItem.m_Image = -1;
-			LItem.m_NumQuads = EntityQuads[eId].size();
-			LItem.m_Data = ArchiveFile.AddDataSwapped(EntityQuads[eId].size()*sizeof(ddnet::CQuad), &EntityQuads[eId][0]);
-			{
-				const char* pEntityName = GetAssetValue<const char*>(EntityTypeList[eId], CSubPath::Null(), CAsset_EntityType::NAME, nullptr);
-				if(pEntityName)
-					StrToInts(LItem.m_aName, sizeof(LItem.m_aName)/sizeof(int), pEntityName);
-				else
-					StrToInts(LItem.m_aName, sizeof(LItem.m_aName)/sizeof(int), "unknown");
-			}
-			ArchiveFile.AddItem(ddnet::MAPITEMTYPE_LAYER, LayerId++, sizeof(ddnet::CMapItemLayerQuads), &LItem);
-		}
-		
-		ddnet::CMapItemGroup GItem;
-		GItem.m_Version = ddnet::CMapItemGroup::CURRENT_VERSION;
-		GItem.m_OffsetX = 0;
-		GItem.m_OffsetY = 0;
-		GItem.m_ParallaxX = 100;
-		GItem.m_ParallaxY = 100;
-		GItem.m_StartLayer = StartLayer;
-		GItem.m_NumLayers = LayerId-StartLayer;
-		GItem.m_UseClipping = 1;
-		GItem.m_ClipX = 0;
-		GItem.m_ClipY = 0;
-		GItem.m_ClipW = 0;
-		GItem.m_ClipH = 0;
-		StrToInts(GItem.m_aName, sizeof(GItem.m_aName)/sizeof(int), "#Entities");
-		ArchiveFile.AddItem(ddnet::MAPITEMTYPE_GROUP, GroupId++, sizeof(ddnet::CMapItemGroup), &GItem);
+		SaveMapPtumEntities(&ArchiveFile, Format, pMap, PTUMTeeWorldsEntities, LayerShift, &LayerId, &GroupId);
 	}
 	
 	//Step6: Save images
@@ -3183,6 +3017,178 @@ bool CAssetsManager::Save_Map(const char* pFileName, int StorageType, int Packag
 	ArchiveFile.Finish();
 
 	return true;
+}
+
+void CAssetsManager::SaveMapPtumEntities(ddnet::CDataFileWriter *pArchiveFile, int Format, const CAsset_Map *pMap, const std::vector<CAsset_MapEntities::CEntity> &PTUMTeeWorldsEntities, const vec2 &LayerShift, int *pLayerId, int *pGroupId)
+{
+	int &LayerId = *pLayerId;
+	int &GroupId = *pGroupId;
+	int StartLayer = LayerId;
+	std::vector<CAssetPath> EntityTypeList;
+	std::vector<std::vector<ddnet::CQuad>> EntityQuads;
+
+	for(unsigned int i = 0; i < PTUMTeeWorldsEntities.size(); i++)
+	{
+		const CAsset_MapEntities::CEntity &Entity = PTUMTeeWorldsEntities[i];
+		CAssetPath EntityTypePath = Entity.GetTypePath();
+
+		// Search in previous layers
+		unsigned int eId;
+		for(eId = 0; eId < EntityTypeList.size(); eId++)
+		{
+			if(EntityTypeList[eId] == EntityTypePath)
+				break;
+		}
+		if(eId == EntityTypeList.size())
+		{
+			EntityTypeList.push_back(EntityTypePath);
+			EntityQuads.emplace_back();
+		}
+
+		EntityQuads[eId].emplace_back();
+		ddnet::CQuad &Quad = EntityQuads[eId].back();
+
+		Quad.m_aPoints[1].x = f2fx(Entity.GetPositionX() - 16.0f - LayerShift.x);
+		Quad.m_aPoints[1].y = f2fx(Entity.GetPositionY() - 16.0f - LayerShift.y);
+		Quad.m_aPoints[0].x = f2fx(Entity.GetPositionX() + 16.0f - LayerShift.x);
+		Quad.m_aPoints[0].y = f2fx(Entity.GetPositionY() - 16.0f - LayerShift.y);
+		Quad.m_aPoints[3].x = f2fx(Entity.GetPositionX() - 16.0f - LayerShift.x);
+		Quad.m_aPoints[3].y = f2fx(Entity.GetPositionY() + 16.0f - LayerShift.y);
+		Quad.m_aPoints[2].x = f2fx(Entity.GetPositionX() + 16.0f - LayerShift.x);
+		Quad.m_aPoints[2].y = f2fx(Entity.GetPositionY() + 16.0f - LayerShift.y);
+		Quad.m_aPoints[4].x = f2fx(Entity.GetPositionX() - LayerShift.x);
+		Quad.m_aPoints[4].y = f2fx(Entity.GetPositionY() - LayerShift.y);
+
+		for(int j = 0; j < 4; j++)
+		{
+			Quad.m_aTexcoords[j + 1 - 2 * (j % 2)].x = 0.0f;
+			Quad.m_aTexcoords[j + 1 - 2 * (j % 2)].y = 0.0f;
+			Quad.m_aColors[j + 1 - 2 * (j % 2)].r = 255.0f;
+			Quad.m_aColors[j + 1 - 2 * (j % 2)].g = 255.0f;
+			Quad.m_aColors[j + 1 - 2 * (j % 2)].b = 255.0f;
+			Quad.m_aColors[j + 1 - 2 * (j % 2)].a = 255.0f;
+		}
+
+		Quad.m_PosEnv = -1;
+		Quad.m_PosEnvOffset = 0;
+		Quad.m_ColorEnv = -1;
+		Quad.m_ColorEnvOffset = 0;
+	}
+
+	CAsset_Map::CIteratorEntityLayer EntityLayerIter;
+	for(EntityLayerIter = pMap->BeginEntityLayer(); EntityLayerIter != pMap->EndEntityLayer(); ++EntityLayerIter)
+	{
+		const CAsset_MapEntities *pEntities = GetAsset<CAsset_MapEntities>(pMap->GetEntityLayer(*EntityLayerIter));
+		if(!pEntities)
+			continue;
+
+		for(int i = 0; i < pEntities->GetEntityArraySize(); i++)
+		{
+			CSubPath SubPath = CAsset_MapEntities::SubPath_Entity(i);
+			CAssetPath EntityTypePath = pEntities->GetEntityTypePath(SubPath);
+
+			if(EntityTypePath == m_Path_EntityType_TWSpawn)
+				continue;
+			else if(EntityTypePath == m_Path_EntityType_TWSpawnRed)
+				continue;
+			else if(EntityTypePath == m_Path_EntityType_TWSpawnBlue)
+				continue;
+			else if(EntityTypePath == m_Path_EntityType_TWShotgun)
+				continue;
+			else if(EntityTypePath == m_Path_EntityType_TWGrenade)
+				continue;
+			else if(EntityTypePath == m_Path_EntityType_TWLaserRifle)
+				continue;
+			else if(EntityTypePath == m_Path_EntityType_TWNinja)
+				continue;
+			else if(EntityTypePath == m_Path_EntityType_TWHeart)
+				continue;
+			else if(EntityTypePath == m_Path_EntityType_TWArmor)
+				continue;
+			else if(EntityTypePath == m_Path_EntityType_TWFlagBlue)
+				continue;
+			else if(EntityTypePath == m_Path_EntityType_TWFlagRed)
+				continue;
+
+			// Search in previous layers
+			unsigned int eId;
+			for(eId = 0; eId < EntityTypeList.size(); eId++)
+			{
+				if(EntityTypeList[eId] == EntityTypePath)
+					break;
+			}
+			if(eId == EntityTypeList.size())
+			{
+				EntityTypeList.push_back(EntityTypePath);
+				EntityQuads.emplace_back();
+			}
+
+			EntityQuads[eId].emplace_back();
+			ddnet::CQuad &Quad = EntityQuads[eId].back();
+
+			Quad.m_aPoints[1].x = f2fx(pEntities->GetEntityPositionX(SubPath) - 16.0f - LayerShift.x);
+			Quad.m_aPoints[1].y = f2fx(pEntities->GetEntityPositionY(SubPath) - 16.0f - LayerShift.y);
+			Quad.m_aPoints[0].x = f2fx(pEntities->GetEntityPositionX(SubPath) + 16.0f - LayerShift.x);
+			Quad.m_aPoints[0].y = f2fx(pEntities->GetEntityPositionY(SubPath) - 16.0f - LayerShift.y);
+			Quad.m_aPoints[3].x = f2fx(pEntities->GetEntityPositionX(SubPath) - 16.0f - LayerShift.x);
+			Quad.m_aPoints[3].y = f2fx(pEntities->GetEntityPositionY(SubPath) + 16.0f - LayerShift.y);
+			Quad.m_aPoints[2].x = f2fx(pEntities->GetEntityPositionX(SubPath) + 16.0f - LayerShift.x);
+			Quad.m_aPoints[2].y = f2fx(pEntities->GetEntityPositionY(SubPath) + 16.0f - LayerShift.y);
+			Quad.m_aPoints[4].x = f2fx(pEntities->GetEntityPositionX(SubPath) - LayerShift.x);
+			Quad.m_aPoints[4].y = f2fx(pEntities->GetEntityPositionY(SubPath) - LayerShift.y);
+
+			for(int j = 0; j < 4; j++)
+			{
+				Quad.m_aTexcoords[j + 1 - 2 * (j % 2)].x = 0.0f;
+				Quad.m_aTexcoords[j + 1 - 2 * (j % 2)].y = 0.0f;
+				Quad.m_aColors[j + 1 - 2 * (j % 2)].r = 255.0f;
+				Quad.m_aColors[j + 1 - 2 * (j % 2)].g = 255.0f;
+				Quad.m_aColors[j + 1 - 2 * (j % 2)].b = 255.0f;
+				Quad.m_aColors[j + 1 - 2 * (j % 2)].a = 255.0f;
+			}
+
+			Quad.m_PosEnv = -1;
+			Quad.m_PosEnvOffset = 0;
+			Quad.m_ColorEnv = -1;
+			Quad.m_ColorEnvOffset = 0;
+		}
+	}
+
+	for(unsigned int eId = 0; eId < EntityTypeList.size(); eId++)
+	{
+		ddnet::CMapItemLayerQuads LItem;
+		LItem.m_Version = 2;
+		LItem.m_Layer.m_Version = 0; // was previously uninitialized, do not rely on it being 0
+		LItem.m_Layer.m_Type = ddnet::LAYERTYPE_QUADS;
+		LItem.m_Layer.m_Flags = ddnet::LAYERFLAG_DETAIL;
+		LItem.m_Image = -1;
+		LItem.m_NumQuads = EntityQuads[eId].size();
+		LItem.m_Data = pArchiveFile->AddDataSwapped(EntityQuads[eId].size() * sizeof(ddnet::CQuad), &EntityQuads[eId][0]);
+		{
+			const char *pEntityName = GetAssetValue<const char *>(EntityTypeList[eId], CSubPath::Null(), CAsset_EntityType::NAME, nullptr);
+			if(pEntityName)
+				StrToInts(LItem.m_aName, sizeof(LItem.m_aName) / sizeof(int), pEntityName);
+			else
+				StrToInts(LItem.m_aName, sizeof(LItem.m_aName) / sizeof(int), "unknown");
+		}
+		pArchiveFile->AddItem(ddnet::MAPITEMTYPE_LAYER, LayerId++, sizeof(ddnet::CMapItemLayerQuads), &LItem);
+	}
+
+	ddnet::CMapItemGroup GItem;
+	GItem.m_Version = ddnet::CMapItemGroup::CURRENT_VERSION;
+	GItem.m_OffsetX = 0;
+	GItem.m_OffsetY = 0;
+	GItem.m_ParallaxX = 100;
+	GItem.m_ParallaxY = 100;
+	GItem.m_StartLayer = StartLayer;
+	GItem.m_NumLayers = LayerId - StartLayer;
+	GItem.m_UseClipping = 1;
+	GItem.m_ClipX = 0;
+	GItem.m_ClipY = 0;
+	GItem.m_ClipW = 0;
+	GItem.m_ClipH = 0;
+	StrToInts(GItem.m_aName, sizeof(GItem.m_aName) / sizeof(int), "#Entities");
+	pArchiveFile->AddItem(ddnet::MAPITEMTYPE_GROUP, GroupId++, sizeof(ddnet::CMapItemGroup), &GItem);
 }
 
 void CAssetsManager::SaveMapImages(ddnet::CDataFileWriter *pArchiveFile, int Format, const std::vector<CAssetPath> &Images)
